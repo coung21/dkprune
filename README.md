@@ -35,7 +35,7 @@ until accuracy drops below a threshold you set, then tells you which round to ke
 ## Install
 
 ```bash
-git clone <this repo> dkprune
+git clone https://github.com/coung21/dkprune
 cd dkprune
 pip install -r requirements.txt
 ```

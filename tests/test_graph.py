@@ -246,6 +246,12 @@ def test_write_rejects_missing_conv(g):
     with pytest.raises(KeyError):
         gr.write_params(g, params, HEADER)
 
+def test_default_valued_options_are_accepted():
+    text = ("[net]\nwidth=32\nheight=32\nchannels=3\n"
+            "[convolutional]\nfilters=8\nsize=3\npad=1\ndilation=1\nbinary=0\n"
+            "[convolutional]\nfilters=8\nsize=1\n"
+            "[shortcut]\nfrom=-2\nweights_type=none\n")
+    gr.build(cfg.parse(text))
 
 # ---------------------------------------------------------------- real weights
 

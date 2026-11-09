@@ -76,7 +76,7 @@ def reject(section: Section, index: int, keys: dict[str, str]) -> None:
     """Raises GraphError if any of the keys are present in the section, with a message indicating the expected value."""
     for key, allowed in keys.items():
         opt = section.find(key)
-        if opt is not None:
+        if opt is not None and opt.value != allowed:
             raise GraphError(f"unexpected {key}={opt.value!r} in layer {index} at line {opt.line + 1}, expected {allowed}") from None
 
 def resolve(index: int, raw: str, section: Section) -> int:

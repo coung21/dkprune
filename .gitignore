@@ -2,3 +2,5 @@ __pycache__
 .pytest_cache
 *.weights
 .env
+config.yaml
+runs/
