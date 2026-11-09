@@ -9,7 +9,7 @@ from dkprune.graph import ConvParams
 from dkprune.io import cfg as cfgio
 from dkprune.io import weights as wt
 from dkprune.layers.base import GraphError
-from dkprune.tests.forward import activation, forward
+from tests.forward import activation, forward
 
 CFGS = Path(__file__).parent / "cfgs"
 REAL_CFG = os.environ.get("DKPRUNE_CFG")
