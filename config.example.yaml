@@ -1,4 +1,3 @@
-
 # Config for one prune run. Copy to config.yaml and edit.
 # Relative paths are resolved from the directory containing this file.
 
@@ -28,6 +27,14 @@ prune:
   min_keep: 8
   skip: [0]                 # convs not to prune (layer indices); 0 = first conv
   seed: 0
+
+# --- (optional) sensitivity analysis: trial-prune each group, measure mAP without fine-tuning,
+#     then set a per-group ratio instead of prune.ratio.
+#     Cost: (number of groups) x (number of levels) runs of darknet detector map. Remove this whole section to use one shared ratio.
+# sensitivity:
+#   ratios: [0.1, 0.2, 0.3, 0.5]  # trial prune levels
+#   tolerance: 0.01               # allowed mAP drop when pruning ONE group alone (1 point)
+#   max_ratio: 0.3                # maximum per-round ratio for a group
 
 finetune:
   max_batches: 2000         # fine-tune iterations after each prune

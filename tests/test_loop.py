@@ -114,7 +114,7 @@ def test_config_errors(tmp_path):
     raw = yaml.safe_load(p.read_text())
     del raw["cfg"]
     p.write_text(yaml.safe_dump(raw))
-    with pytest.raises(config.ConfigError, match="required key 'cfg' is missing"):
+    with pytest.raises(config.ConfigError, match="required key missing 'cfg'"):
         config.load(p)
     raw["cfg"] = "data/khong-co.cfg"
     p.write_text(yaml.safe_dump(raw))
@@ -158,7 +158,7 @@ def test_loop_stops_at_threshold(tmp_path, monkeypatch, fake_env):
         assert mb is not None and mb.value == expect
     text = (run / "summary.md").read_text()
     assert "**choose**" in text and "gone over" in text
-    assert any("stopping" in m for m in logs)
+    assert any("exceeds threshold" in m and m.endswith("stop") for m in logs)
 
 
 def test_loop_resume_does_not_redo_rounds(tmp_path, monkeypatch, fake_env):
@@ -193,8 +193,6 @@ def test_loop_requires_valid_in_data(tmp_path, monkeypatch, fake_env):
     with pytest.raises(ValueError, match="valid="):
         loop.run(config.load(path), log=lambda m: None)
 
-
-# ---------------------------------------------------------------- dòng lệnh
 
 def test_cli_inspect_and_verify(tmp_path, capsys):
     make_project(tmp_path)

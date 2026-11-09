@@ -8,13 +8,6 @@ like any other model, and fine-tunes it with Darknet after each round. It repeat
 until accuracy drops below a threshold you set, then tells you which round to keep.
 
 
-```
-round 0: 6,053,095 params  11.07 BFLOPs  mAP 80.00%
-round 1: 4,266,455 params   7.85 BFLOPs  mAP 79.50%  (-0.50)
-round 2: 3,085,535 params   6.03 BFLOPs  mAP 78.50%  (-1.50)   <- chosen
-round 3: 2,133,943 params   4.51 BFLOPs  mAP 70.00%  (-10.00)  over threshold, stop
-```
-
 ## Features
 
 - **Architecture-agnostic.** Rules are written per layer type, not per model.
@@ -64,7 +57,6 @@ workspace/
 python run.py inspect model.cfg model.weights
 ```
 
-
 **2. Write a config**
 
 ```bash
@@ -113,6 +105,7 @@ the speed-up depends heavily on the hardware.
 | `python run.py inspect <cfg> [weights]` | Print the network table; also verify the weights if given |
 | `python run.py verify <cfg> <weights>` | Check that the pair matches and the weights are sane (exit 0 = ok) |
 | `python run.py prune <config.yaml>` | Run iterative pruning |
+| `python run.py sensitivity <config.yaml>` | Only measure the baseline and run the sensitivity analysis |
 
 ## Configuration
 
@@ -135,7 +128,10 @@ the speed-up depends heavily on the hardware.
 | `finetune.last_max_batches` | same | Iterations for the last round |
 | `finetune.learning_rate` | `0.001` | Learning rate written to `[net]` |
 | `finetune.burn_in` | `200` | Burn-in written to `[net]` |
-
+| `sensitivity` | off | Enable per-group ratios from a sensitivity analysis (see below) |
+| `sensitivity.ratios` | `[0.1, 0.2, 0.3, 0.5]` | Trial pruning levels |
+| `sensitivity.tolerance` | `0.01` | mAP drop allowed when pruning one group alone (0.01 = 1 point) |
+| `sensitivity.max_ratio` | `0.3` | Largest per-round ratio any group may get |
 
 ## What a run produces
 
@@ -185,7 +181,8 @@ dkprune/
 ├── layers/                     one rule per layer type + registry
 ├── graph.py                    channels, origins, groups, locks; read/write conv params
 ├── criteria.py                 filter scores
-├── policy.py                   which filters to keep
+├── policy.py                   which filters to keep (one ratio, or one per group)
+├── sensitivity.py              per-group sensitivity analysis
 ├── surgery.py                  cut rows, columns, BatchNorm; edit cfg
 ├── verify.py                   check a cfg/weights pair
 ├── darknet.py                  the only place that runs Darknet

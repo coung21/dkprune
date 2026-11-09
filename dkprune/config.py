@@ -1,5 +1,3 @@
-
-
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -8,6 +6,7 @@ from pathlib import Path
 import yaml
 
 from dkprune.policy import PruneConfig
+from dkprune.sensitivity import SensitivityConfig
 
 
 class ConfigError(ValueError):
@@ -17,7 +16,7 @@ class ConfigError(ValueError):
 @dataclass(frozen=True)
 class FinetuneConfig:
     max_batches: int = 2000
-    last_max_batches: int | None = None
+    last_max_batches: int | None = None      
     learning_rate: float = 0.001
     burn_in: int = 200
 
@@ -25,9 +24,9 @@ class FinetuneConfig:
 @dataclass(frozen=True)
 class RunConfig:
     data: Path                              
-    cfg: Path                                
-    weights: Path                            
-    run_dir: Path                           
+    cfg: Path                             
+    weights: Path                          
+    run_dir: Path                          
     darknet_cmd: str = "darknet"
     workdir: Path | None = None              
     eval_data: Path | None = None           
@@ -35,6 +34,7 @@ class RunConfig:
     max_map_drop: float = 0.02              
     prune: PruneConfig = field(default_factory=lambda: PruneConfig(ratio=0.16))
     finetune: FinetuneConfig = field(default_factory=FinetuneConfig)
+    sensitivity: SensitivityConfig | None = None  
 
     @property
     def darknet_workdir(self) -> Path:
@@ -49,11 +49,12 @@ def _path(base: Path, value) -> Path:
 def load(path: str | Path) -> RunConfig:
     path = Path(path)
     raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    base = path.parent.resolve()                 
+    base = path.parent.resolve()               
 
     try:
         p = raw.get("prune", {}) or {}
         f = raw.get("finetune", {}) or {}
+        s = raw.get("sensitivity")
         cfg = RunConfig(
             data=_path(base, raw["data"]),
             cfg=_path(base, raw["cfg"]),
@@ -78,9 +79,14 @@ def load(path: str | Path) -> RunConfig:
                 learning_rate=float(f.get("learning_rate", 0.001)),
                 burn_in=int(f.get("burn_in", 200)),
             ),
+            sensitivity=None if not s else SensitivityConfig(
+                ratios=tuple(float(x) for x in s.get("ratios", SensitivityConfig.ratios)),
+                tolerance=float(s.get("tolerance", SensitivityConfig.tolerance)),
+                max_ratio=float(s.get("max_ratio", SensitivityConfig.max_ratio)),
+            ),
         )
     except KeyError as e:
-        raise ConfigError(f"{path}: required key {e} is missing") from None
+        raise ConfigError(f"{path}: required key missing {e}") from None
     except (TypeError, ValueError) as e:
         raise ConfigError(f"{path}: invalid value: {e}") from None
 
