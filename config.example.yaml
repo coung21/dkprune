@@ -1,0 +1,36 @@
+
+# Config for one prune run. Copy to config.yaml and edit.
+# Relative paths are resolved from the directory containing this file.
+
+# --- base model and data
+data: /data/legogears/LegoGears/mine.data       # .data used for training; MUST have valid= (Darknet needs it to save _best)
+cfg: /data/baseline_lego/LegoGears.cfg
+weights: /data/baseline_lego/LegoGears_best.weights
+# eval_data: /data/legogears/LegoGears/test.data   # .data for measuring mAP (e.g. valid= the test set); defaults to data
+
+# --- output location (one directory per run)
+run_dir: /data/runs/lego_l2
+
+# --- how to invoke Darknet
+darknet_cmd: darknet
+# Run Darknet in Docker from the host (mount the same paths on both sides):
+# darknet_cmd: docker run --rm --gpus all -v /data:/data -w /data --user 1000:1000 my-darknet darknet
+# workdir: /data/legogears/LegoGears   # directory to run Darknet in; defaults to the data file's directory
+
+# --- loop
+rounds: 4
+max_map_drop: 0.02          # stop when mAP drops more than 2 points below the base model
+
+prune:
+  ratio: 0.16               # each round removes 16% of the filters in each group (of those currently left)
+  criterion: l2             # l2 | l1 | l2_raw | random
+  round_to: 8               # number of kept filters is a multiple of 8
+  min_keep: 8
+  skip: [0]                 # convs not to prune (layer indices); 0 = first conv
+  seed: 0
+
+finetune:
+  max_batches: 2000         # fine-tune iterations after each prune
+  last_max_batches: 4000    # the last round trains longer (remove this line to match the other rounds)
+  learning_rate: 0.001
+  burn_in: 200
