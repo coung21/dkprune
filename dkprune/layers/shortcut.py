@@ -30,7 +30,9 @@ class Shortcut:
                                  f"different from previous layer {prev.index} ({prev.channels} kênh, {prev.hw})")
             other = _single_conv(o.origin)
             if base is not None and other is not None:
-                ties.append((base, other))          
+                ties.append((base, other))          # prune both convs together
+            else:
+                # inputs mix several layers: channels can't be matched one to one, so lock them
                 why = f"is a source of a shortcut (layer {index})"
                 locks += [(c, why) for c in producers(prev.origin) + producers(o.origin)]
  
